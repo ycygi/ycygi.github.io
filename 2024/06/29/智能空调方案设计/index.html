@@ -117,13 +117,12 @@
 <h4 id="1-1系统功能简介"><a href="#1-1系统功能简介" class="headerlink" title="1.1系统功能简介"></a>1.1系统功能简介</h4><p style="text-indent: 2em;">本设计主要有两种温控模式————制热模式与制冷模式。围绕智能温控系统实现了语音指令系统，部署了用户UI界面[^UI]，完成了PID温控算法设计[^PID]，引入了天气系统。</p>
 
 <ul>
-<li>语音指令系统：用户可以采用智能语音平台实现系统的温度设定，设备启停，模式切换等功能。</li>
-<li>用户UI界面：可以利用该界面实现直观的指令部署并获取设备运行相关信息。</li>
-<li>PID算法：利用前馈控制、Lambda整定法实现对负载功率的控制以完成对环境温度的精准调节。</li>
-<li>天气系统：根据室外温度信息以及天气状况自动改变设备的运行状态以更符合当下环境需求。</li>
+<li><strong>语音指令系统：</strong>用户可以采用智能语音平台实现系统的温度设定，设备启停，模式切换等功能。</li>
+<li><strong>用户UI界面：</strong>可以利用该界面实现直观的指令部署并获取设备运行相关信息。</li>
+<li><strong>PID算法：</strong>利用前馈控制、Lambda整定法实现对负载功率的控制以完成对环境温度的精准调节。</li>
+<li><strong>天气系统：</strong>根据室外温度信息以及天气状况自动改变设备的运行状态以更符合当下环境需求。</li>
 </ul>
-<p style="text-indent: 2em;">系统运行流程图如下</p>
-
+<p>系统运行流程图如下：</p>
 <p><img src="https://pic.imgdb.cn/item/668181f0d9c307b7e9834ca8.png%22%E6%99%BA%E8%83%BD%E7%A9%BA%E8%B0%83%E7%B3%BB%E7%BB%9F%E8%BF%90%E8%A1%8C%E6%B5%81%E7%A8%8B%E5%9B%BE%22" alt="智能空调系统运行流程图"></p>
 <h4 id="1-2硬件系统简介"><a href="#1-2硬件系统简介" class="headerlink" title="1.2硬件系统简介"></a>1.2硬件系统简介</h4><p style="text-indent: 2em;">该系统由ESP32微控制器，DS18B20，电平转换器，继电器，mos管，mos管扩展模块，5V电源，12V电源，加热系统负载以及制冷系统负载组成。系统通过DS18B20实现温度采样，通过电平转换器，继电器，mos管，电源，温控负载配合PWM技术实现温度的控制。温控负载中，制热系统包含制热片，制冷系统包含制冷片，散热风扇，防结霜风扇。系统运行效果如下所示。</p>
 
@@ -140,11 +139,14 @@
 <p><img src="https://pic.imgdb.cn/item/668105a2d9c307b7e9ce1f54.jpg%22%E8%AF%AD%E9%9F%B3%E7%B3%BB%E7%BB%9F%E8%BF%90%E8%A1%8C%E5%AE%9E%E4%BE%8B%22" alt="语音系统运行实例"></p>
 <h5 id="1-3-3软件系统部署"><a href="#1-3-3软件系统部署" class="headerlink" title="1.3.3软件系统部署"></a>1.3.3软件系统部署</h5><p style="text-indent: 2em;">Node-RED 是一个基于流的开发工具，专为可视化编程而设计，特别适合物联网（IoT）应用。Node-RED 使用 Node.js 构建，具有高度的扩展性，支持通过丰富的节点库进行功能扩展。本系统依靠Node-RED部署，实现软件端的各种功能。</p>
 
-<p><strong>UI节点部署：</strong>mqtt in节点和mqtt out节点分别用来订阅和发布至指定的主题，实现了控制信号和状态信息的实时交互。ui_gauge、ui_chart、ui_slider等节点提供了实时的温度显示和温度调节干预，而ui_text节点展示了环境天气信息，增强了用户对系统状态的理解和控制能力。function节点用于编写自定义逻辑，处理温度数据和响应用户设定变化。<br><strong>天气系统：</strong>利用inject节点触发周期性事件，并通过http request节点从外部天气服务API获取实时数据。天气信息经过json节点解析后再由function节点抓取所需数据，传输给ui_text节点实现UI界面的天气信息展示。<br><strong>语音系统：</strong>由语音平台发送指令，再通过巴法云的MQTT服务传递到Node-RED中。随后由mqtt in节点接收，再通过一系列的function节点对指令进行解析。<br><strong>联动控制系统：</strong>系统通过外部天气信息和用户操作可以自动和手动控制恒温系统模式。具体节点的功能及其关系如下：通过function节点解析从天气API获取的室外温度数据，并将其传输到switch节点，根据室外温度，将温度划分为“冬季”、“适宜”和“夏季”三种范围，对应不同的控制模式，以完成系统的自动控制。为保证各个模式交互UI的互斥性，系统利用一系列function节点实现了用户交互的一致性。最后利用change节点将信息转为易于编程的标识符，再由mqtt-out节点将信息发送至设备终端。</p>
+<p><strong>UI节点部署：</strong>mqtt in节点和mqtt out节点分别用来订阅和发布至指定的主题，实现了控制信号和状态信息的实时交互。ui_gauge、ui_chart、ui_slider等节点提供了实时的温度显示和温度调节干预，而ui_text节点展示了环境天气信息，增强了用户对系统状态的理解和控制能力。function节点用于编写自定义逻辑，处理温度数据和响应用户设定变化。</p>
+<p><strong>天气系统：</strong>利用inject节点触发周期性事件，并通过http request节点从外部天气服务API获取实时数据。天气信息经过json节点解析后再由function节点抓取所需数据，传输给ui_text节点实现UI界面的天气信息展示。</p>
+<p><strong>语音系统：</strong>由语音平台发送指令，再通过巴法云的MQTT服务传递到Node-RED中。随后由mqtt in节点接收，再通过一系列的function节点对指令进行解析。</p>
+<p><strong>联动控制系统：</strong>系统通过外部天气信息和用户操作可以自动和手动控制恒温系统模式。具体节点的功能及其关系如下：通过function节点解析从天气API获取的室外温度数据，并将其传输到switch节点，根据室外温度，将温度划分为“冬季”、“适宜”和“夏季”三种范围，对应不同的控制模式，以完成系统的自动控制。为保证各个模式交互UI的互斥性，系统利用一系列function节点实现了用户交互的一致性。最后利用change节点将信息转为易于编程的标识符，再由mqtt-out节点将信息发送至设备终端。</p>
 <p><img src="https://pic.imgdb.cn/item/66818b19d9c307b7e992668f.png%22Node-RED%E8%8A%82%E7%82%B9%E9%83%A8%E7%BD%B2%22" alt="Node-RED部署"></p>
 <h3 id="2代码介绍"><a href="#2代码介绍" class="headerlink" title="2代码介绍"></a>2代码介绍</h3><p style="text-indent: 2em;">系统代码主要分为硬件端程序与软件端程序。ESP32微控制器端主要采用C++语音编写，Node-RED软件系统端采用JavaScript语言编写。</p>
 
-<h4 id="2-1硬件端代码"><a href="#2-1硬件端代码" class="headerlink" title="2.1硬件端代码"></a>2.1硬件端代码</h4><p style="text-indent: 2em;">硬件端程序主要构成部分有串口监听程序————负责系统的调试，PID控制程序————负责温度的调用以及负责的PWN控制，MQTT程序————主要负责系统数据的上传以及云端数据的接收。在loop函数中还包括了系统高低温保护程序，以保障系统的安全稳定运行。</p>
+<h4 id="2-1硬件端代码"><a href="#2-1硬件端代码" class="headerlink" title="2.1硬件端代码"></a>2.1硬件端代码</h4><p style="text-indent: 2em;">硬件端程序主要构成部分有串口监听程序——负责系统的调试，PID控制程序——负责温度的调用以及负责的PWN控制，MQTT程序——主要负责系统数据的上传以及云端数据的接收。在loop函数中还包括了系统高低温保护程序，以保障系统的安全稳定运行。</p>
 
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">loop</span><span class="params">()</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="comment">//串口监听程序</span></span><br><span class="line">  <span class="built_in">checkForSerialCommands</span>();  </span><br><span class="line">  <span class="comment">//PID控制程序</span></span><br><span class="line">  <span class="built_in">PIDcontrol</span>();</span><br><span class="line">  <span class="comment">//MQTT程序</span></span><br><span class="line">  <span class="built_in">mqtt</span>();</span><br><span class="line">  <span class="comment">//系统保护程序</span></span><br><span class="line">  (measuredTemp &gt;= <span class="number">50</span> || measuredTemp &lt;= <span class="number">0</span>) ? </span><br><span class="line">  (<span class="built_in">digitalWrite</span>(heatkeyPin, LOW), <span class="built_in">digitalWrite</span>(coolkeyPin, LOW)) : (<span class="type">void</span>)<span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <ul>
